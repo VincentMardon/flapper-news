@@ -8,7 +8,13 @@ app.config([
       .state('home', {
         url: '/home',
         templateUrl: '/home.html',
-        controller: 'MainController'
+        controller: 'MainController',
+        resolve: {
+          postPromise: ['posts', function(posts){
+            console.log('hello posts');
+            return posts.getAll();
+          }]
+        }
       })
       .state('posts', {
         url: '/posts/{id}',
@@ -20,16 +26,19 @@ app.config([
   }
 ])
 
-app.factory('posts', [function(){
+app.factory('posts', ['$http', function($http){
   var o = {
-    posts: [
-      {title: 'Post 1', upvotes: 24, comments: []},
-      {title: 'Post 2', upvotes: 50, comments:[]},
-      {title: 'Post 3', upvotes: 3, comments:[]},
-      {title: 'Post 4', upvotes: 15, comments:[]},
-      {title: 'Post 5', upvotes: 893, comments:[]},
-    ]
+    posts: []
   };
+  
+  o.getAll = function() {
+    console.log('hello');
+    return $http.get('/posts').success(function(data){
+      console.log('hello');
+      angular.copy(data, o.posts);
+    });
+  };
+  
   return o;
 }]);
 
