@@ -11,10 +11,10 @@ var users = require('./routes/users');
 var app = express();
 var mongoose = require('mongoose');
 require('./models/Posts');
-resuire('./models/Comments');
+require('./models/Comments');
 
 // connection to local database database
-mongoose.connect('mongodb://localhose/news');
+mongoose.connect('mongodb://localhost/news');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
