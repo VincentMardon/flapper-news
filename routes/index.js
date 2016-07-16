@@ -39,5 +39,8 @@ router.post('/posts', function(req, res, next) {
 });
 
 /* GET a single post */
+router.get('/posts/:post', function(req, res) {
+  res.json(req.post);
+});
 
 module.exports = router;
