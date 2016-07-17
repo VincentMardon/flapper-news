@@ -22,7 +22,7 @@ UserSchema.methods.generateJWT = function() {
   // Setting expiration to 60 days:
   var today = new Date();
   var exp = new Date(today);
-  ewp.setDate(today.getDate() + 60);
+  exp.setDate(today.getDate() + 60);
   
   return jwt.sign({
     _id: this._id,

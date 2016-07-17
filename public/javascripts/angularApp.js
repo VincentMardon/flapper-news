@@ -60,7 +60,7 @@ app.factory('auth', ['$http','$window' , function($http, $window){
     var token = auth.getToken();
     if(token){
       var payload = JSON.parse($window.atob(token.split('.')[1]));
-      return payloas.exp > Date.now() / 1000;
+      return payload.exp > Date.now() / 1000;
     } else {
       return false;
     }
