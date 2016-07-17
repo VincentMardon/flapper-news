@@ -87,7 +87,7 @@ app.factory('auth', ['$http','$window' , function($http, $window){
   }
   return auth;
 }]);
-app.factory('posts', ['$http', function($http){
+app.factory('posts', ['$http', 'auth', function($http, auth){
   var o = {
     posts: []
   };
@@ -102,32 +102,40 @@ app.factory('posts', ['$http', function($http){
     })
   }
   o.create = function(post) {
-    return $http.post('/posts', post).success(function(data){
+    return $http.post('/posts', post, {
+      headers: {Authorization: 'Bearer '+auth.getToken()}
+    }).success(function(data){
       o.posts.push(data);
     });
   };
   o.upvote = function(post) {
-    return $http.put('/posts/'+post._id+'/upvote')
-      .success(function(data){
-        post.upvotes++;
-      });
+    return $http.put('/posts/'+post._id+'/upvote', null, {
+      headers: {Authorization: 'Bearer '+auth.getToken()}
+    }).success(function(data){
+      post.upvotes++;
+    });
   };
   o.addComment = function(id, comment) {
-    return $http.post('/posts/'+id+'/comments', comment);
+    return $http.post('/posts/'+id+'/comments', comment, {
+      headers: {Authorization: 'Bearer '+auth.getToken()}
+    });
   };
   o.upvoteComments = function(post, comment) {
-    return $http.put('/posts/'+post._id+'/comments/'+comment._id+'/upvote')
-      .success(function(data){
-        comment.upvotes++;
-      });
+    return $http.put('/posts/'+post._id+'/comments/'+comment._id+'/upvote', null, {
+      headers: {Authorization: 'Bearer '+auth.getToken()}
+    }).success(function(data){
+      comment.upvotes++;
+    });
   };
   return o;
 }]);
 app.controller('MainController', [
   '$scope',
+  'auth',
   'posts',
-  function($scope, posts) {
-    $scope.posts = posts.posts; 
+  function($scope, auth, posts) {
+    $scope.posts = posts.posts;
+    $scope.isLoggedIn = auth.isLoggedIn;
     $scope.addPost = function(){
       if(!$scope.title || $scope.title === '') { return; }
       posts.create({
@@ -174,15 +182,17 @@ app.controller('NavController', [
 ]);
 app.controller('PostsController', [
   '$scope',
+  'auth',
   'posts',
   'post',
-  function($scope, posts, post){
+  function($scope, auth, posts, post){
     $scope.post = post;
+    $scope.isLoggedIn = auth.isLoggedIn;
     $scope.addComment = function(){
       if($scope.body === '') { return; }
       posts.addComment(post._id, {
         body: $scope.body,
-        author: 'user',
+        author: auth.currentUser
       }).success(function(comment){
         $scope.post.comments.push(comment);
       });

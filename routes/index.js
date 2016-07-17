@@ -79,6 +79,8 @@ router.post('/posts', auth, function(req, res, next) {
 
 /* create comment */
 router.post('/posts/:post/comments', auth, function(req, res, next) {
+  console.log(req);
+  
   var comment = new Comment(req.body);
   comment.post = req.post;
   comment.author = req.payload.username;
