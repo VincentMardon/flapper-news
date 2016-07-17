@@ -15,6 +15,26 @@ app.config([
           }]
         }
       })
+      .state('login', {
+        url: '/login',
+        templateUrl: '/login.html',
+        controller: 'AuthController',
+        onEnter: ['$state', 'auth', function($state, auth){
+          if(auth.isLoggedIn()){
+            $state.go('home');
+          }
+        }]
+      })
+      .state('register', {
+        url: '/register',
+        templateUrl: '/register.html',
+        controller: 'AuthController',
+        onEnter: ['$state', 'auth', function($state, auth){
+          if(auth.isLoggedIn()){
+            $state.go('home');
+          }
+        }]
+      })
       .state('posts', {
         url: '/posts/{id}',
         templateUrl: '/posts.html',
@@ -25,11 +45,9 @@ app.config([
           }]
         }
       });
-    
     $urlRouterProvider.otherwise('home');
   }
-])
-
+]);
 app.factory('auth', ['$http','$window' , function($http, $window){
   var auth = {};
   auth.saveToken = function(token){
@@ -69,57 +87,47 @@ app.factory('auth', ['$http','$window' , function($http, $window){
   }
   return auth;
 }]);
-
 app.factory('posts', ['$http', function($http){
   var o = {
     posts: []
   };
-  
   o.getAll = function() {
     return $http.get('/posts').success(function(data){
       angular.copy(data, o.posts);
     });
   };
-  
   o.get = function(id) {
     return $http.get('/posts/'+id).then(function(res){
       return res.data;
     })
   }
-  
   o.create = function(post) {
     return $http.post('/posts', post).success(function(data){
       o.posts.push(data);
     });
   };
-  
   o.upvote = function(post) {
     return $http.put('/posts/'+post._id+'/upvote')
       .success(function(data){
         post.upvotes++;
       });
   };
-  
   o.addComment = function(id, comment) {
     return $http.post('/posts/'+id+'/comments', comment);
   };
-  
   o.upvoteComments = function(post, comment) {
     return $http.put('/posts/'+post._id+'/comments/'+comment._id+'/upvote')
       .success(function(data){
         comment.upvotes++;
       });
-  }
-  
+  };
   return o;
 }]);
-
 app.controller('MainController', [
   '$scope',
   'posts',
   function($scope, posts) {
     $scope.posts = posts.posts; 
-    
     $scope.addPost = function(){
       if(!$scope.title || $scope.title === '') { return; }
       posts.create({
@@ -129,19 +137,16 @@ app.controller('MainController', [
       $scope.title = '';
       $scope.link = '';
     };
-    
     $scope.incrementUpvotes = function(post) {
       posts.upvote(post);
     };
 }]);
-
 app.controller('PostsController', [
   '$scope',
   'posts',
   'post',
   function($scope, posts, post){
     $scope.post = post;
-    
     $scope.addComment = function(){
       if($scope.body === '') { return; }
       posts.addComment(post._id, {
@@ -154,6 +159,28 @@ app.controller('PostsController', [
     }
     $scope.incrementUpvotes = function(comment) {
       posts.upvoteComments(post, comment)
+    };
+  }
+]);
+app.controller('AuthController', [
+  '$scope',
+  '$state',
+  'auth',
+  function($scope, $state, auth){
+    $scope.user = {};
+    $scope.register = function(){
+      auth.register($scope.user).error(function(err){
+        $scope.error = err;
+      }).then(function(){
+        $state.go('home');
+      });
+    };
+    $scope.logIn = function(){
+      auth.logIn($scope.user).error(function(err){
+        $scope.error = err;
+      }).then(function(){
+        $state.go('home');
+      });
     };
   }
 ]);
